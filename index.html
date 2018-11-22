@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Grains</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+    <div class="parametrs">
+    <div class="data_operations">
+        <div class="settings">
+                <div class="buttons">
+                        <button id="initBtn">Start Simulation</button>
+                    </div>
+                    <div class="reset">
+                            <button id="reset"><a href="index.html">Reset</a></button>
+                        </div>
+                    <div class="export">
+                        <button id="export"><a id="exportBMP">Export</a></button>
+                    </div>
+                    <div class="import">
+                        <!-- <input type='file' id="import" accept='text/plain' placeholder="Choose a file" onchange='openFile(event)'> -->
+                        <!-- <label for="file">Ch</label> -->
+                        <button id="inputBtn">Choose a file
+                                <input id="f02" type="file" accept='text/plain' placeholder="Choose a file" onchange='openFile(event)'/>
+                        </button>
+                        
+                        <!-- <label for="f02">Choose a file</label> -->
+                </div>
+        </div>
+
+            <div class="settings">
+                    <h3>Settings</h3>
+                    <ul>
+                        <li>
+                            <label for="in_width">Width:&nbsp;</label>
+                            <input type="number" id="in_width" value="300" />
+                        </li>
+                        <li>
+                            <label for="in_height">Height:&nbsp;</label>
+                            <input type="number" id="in_height" value="300" />
+                        </li>
+                        <li>
+                            <label for="in_qunatity">Nucleons:&nbsp;</label>
+                            <input type="number" id="in_qunatity" value="10" />
+                        </li>
+                    </ul>
+                </div>
+        </div>
+
+
+        <div class="neighborhood">
+            <h3>Type of Neighborhood</h3>
+            <div class="neighborhood__item">
+                <input type="radio" id="moore" name="neighborhood">
+                <label for="moore">Moore</label>
+            </div>
+            <div class="neighborhood__item">
+                <input type="radio" id="vonneuman" name="neighborhood" checked>
+                <label for="vonneuman">von Neumann</label>
+            </div>
+            <div class="neighborhood__item">
+                <input type="radio" id="pentagonal-bottom" name="neighborhood">
+                <label for="pentagonal-bottom">Pentagonal</label>
+            </div>
+            <div class="neighborhood__item hide">
+                <input type="radio" id="pentagonal-top" name="neighborhood">
+                <label for="pentagonal-top">Pentagonal - top</label>
+            </div>
+            <div class="neighborhood__item hide">
+                <input type="radio" id="pentagonal-left" name="neighborhood">
+                <label for="pentagonal-left">Pentagonal - left</label>
+            </div>
+            <div class="neighborhood__item hide">
+                <input type="radio" id="pentagonal-right" name="neighborhood">
+                <label for="pentagonal-right">Pentagonal - right</label>
+            </div>
+            <div class="neighborhood__item">
+                <input type="radio" id="hexagonal-left" name="neighborhood">
+                <label for="hexagonal-left">Hexagonal</label>
+            </div>
+            <div class="neighborhood__item hide">
+                <input type="radio" id="hexagonal-right" name="neighborhood">
+                <label for="hexagonal-right">Hexagonal - right</label>
+            </div>
+            <div class="neighborhood__item hide">
+                <input type="radio" id="vonmoore" name="neighborhood">
+                <label for="vonmoore">von Moore</label>
+            </div>
+        </div>
+        <div class="others">
+            <h3>----------------------------------------</h3>
+            <ul>
+                <li class="period">
+                    <input type="checkbox" id="period">
+                    <label for="period">Period</label>
+                </li>
+                <li class="inclusions">
+                    <input type="checkbox" id="inclusions">
+                    <label for="inclusions">Inclusions</label>
+                    <div class="inclusions__options">
+                        <span class="inclusion__count">
+                            <label for="inc_count">Inclusions amount:</label>
+                            <input type="number" id="inc_count" value="10" />
+                        </span>
+                        <br>
+                        <span class="inclusions__start">
+                            <input type="radio" id="inc_start" name="inc_time" checked>
+                            <label for="inc_start">Before</label>
+                        </span>
+
+                        <span class="inclusions__end">
+                            <input type="radio" id="inc_end" name="inc_time">
+                            <label for="inc_end">After</label>
+                        </span>
+                        <br />
+                        <span class="inclusions__rectangle">
+                            <input type="radio" id="inc_rect" name="inc_shape" checked>
+                            <label for="inc_rect">Rectangle</label>
+                        </span>
+
+                        <span class="inclusions__circle">
+                            <input type="radio" id="inc_circ" name="inc_shape">
+                            <label for="inc_circ">Circle</label>
+                        </span>
+                    </div>
+                </li>
+            </ul>
+            <br />
+            <div class="rules">
+                <input type="checkbox" id="rules">
+                <label for="rules">Rules:&nbsp;</label>
+                <input type="number" value="50" id="rule_prob" min="1" max="100" />
+            </div>
+            <br />
+            <div class="substructure">
+                <input type="checkbox" id="substructure">
+                <label for="substructure">Substructure</label>
+            </div>
+            <div class="dualphase">
+                <input type="checkbox" id="dualphase">
+                <label for="dualphase">Dualphase</label>
+            </div>
+            <div>
+                <br />
+                <label for="subCount">Grains amount after:&nbsp;</label>
+                <input type="number" id="subCount" value="20">
+            </div>
+            <div class="monte2 hide">
+                <div>
+                    <br />
+                    <input type="checkbox" id="monte">
+                    <label for="monte">Monte Carlo</label>
+                </div>
+                <div>
+                    <br>
+                    <label for="monteTime">Iteractions:&nbsp;</label>
+                    <input type="number" id="monteTime" value="50">
+                </div>
+                <div>
+                    <br>
+                    <label for="monteProbability">Probability:&nbsp;</label>
+                    <input type="number" id="monteProbability" value="50">
+                </div>
+            </div>
+
+            <div class="hide">
+                <div>
+                        <br />
+                        <input type="checkbox" id="srx">
+                        <label for="srx">Monte Carlo SRX</label>
+                    </div>
+                    <div>
+                        <br>
+                        <label for="minSrx">Min energy</label>
+                        <input type="number" id="minSrx" value="2">
+                    </div>
+                    <div>
+                        <br>
+                        <label for="maxSrx">Max energy</label>
+                        <input type="number" id="maxSrx" value="6">
+                    </div>
+                    <div>
+                        <input type="checkbox" id="randomSrx">
+                        <label for="randomSrx">randomly</label>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="loaderCont hide">
+        <div class="loader">
+            <span id="loading"></span>
+        </div>
+    </div>
+    <script src="./js/jquery.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
