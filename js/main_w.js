@@ -8,33 +8,43 @@ var grains = (function () {
     ctx2 = canvas2.getContext("2d"),
     canvas3 = document.createElement('canvas'),
     ctx3 = canvas3.getContext("2d"),
+    loading = document.getElementById("loading"),
+
     grains = {},
     grainIndex = 1,
+
     inclusions = {},
     inclusionIndex = 1,
     inclusionsCount = 0,
+
     subCount = 0,
     subAfter = 0,
+
     energyFlag = [],
     monteTime = 0,
     monteProb = 50,
+
     matrix = [],
     tmp_matrix = [],
     border = [],
     borderLength = 0,
     _arr = [],
     _length = 0,
+
     srx = [],
     srxMin = 0,
     srxMax = 0,
     srxRun = false,
+
     zeroTemp = 0,
     zerosCounts = 0,
     minID = 0,
     finished = false,
+
+    loaderMax = 0,
     settings = {},
     W = 0,
-    H = 0,
+    H = 0;
 
     settings = {
         size: 1,
@@ -50,19 +60,14 @@ var grains = (function () {
         srx: false,
         srxRandom: false
     };
+
     var grain = function (_x,_y, srxColor) {
         this.color = (typeof srxColor === 'undefined') ? getRandomColor() : srxColor;
-
-        
-        // if(settings.monte) {
-        //     this.color = 'red';
-        // }
         var x, y;
         if(typeof _x === 'undefined' || typeof _y == 'undefined'){
             do {
                 x = Math.floor(Math.random() * W);
                 y = Math.floor(Math.random() * H);
-                //console.log('matrix:', matrix);
             } while (matrix[x][y] <= minID && matrix[x][y] >= 9999)
         }
 
@@ -75,8 +80,7 @@ var grains = (function () {
 
     var inclusion = function () {
         this.color = "#000";
-        var x, y = Math.round((Math.random() * 10) + 5);
-        var size = 10;
+        var x, y, size = Math.round((Math.random() * 10) + 5);
         if (settings.incOnEnd) {
             do {
                 x = Math.round(1 + size / 2 + Math.random() * (W - 2 - size / 2));
@@ -102,7 +106,7 @@ var grains = (function () {
             initInclusions();
         }
         if(settings.monte){
-            initGrains2();
+            initMonteGrains();
         } else {
             initGrains();
         }
@@ -115,7 +119,9 @@ var grains = (function () {
         W = canvas.width = canvas2.width = canvas3.width = document.getElementById("in_width").value;
         H = canvas.height = canvas2.height = canvas3.height = document.getElementById("in_height").value;
 
-        settings.quantity = document.getElementById("in_qunatity").value-1;
+        loaderMax = W*H;
+
+        settings.quantity = document.getElementById("in_qunatity").value;
 
         (document.getElementById('substructure').checked) ? settings.substructures = true : settings.substructures = false;
         (document.getElementById('dualphase').checked) ? settings.dualphase = true : settings.dualphase = false;
@@ -142,6 +148,7 @@ var grains = (function () {
         if(settings.monte){
             monteTime = document.getElementById('monteTime').value;
             monteProb = document.getElementById('monteProbability').value;
+            loaderMax = zerosCounts = monteTime;
         }
 
         if(settings.srx){
@@ -155,6 +162,9 @@ var grains = (function () {
         canvasCont.appendChild(canvas);
         document.body.appendChild(canvasCont);
         ctx3.globalCompositeOperation = ctx2.globalCompositeOperation = ctx.globalCompositeOperation = 'source-over';
+
+        loading.parentElement.style.opacity = 1;
+
         ctx.clearRect(0, 0, W, H);
     }
 
@@ -187,12 +197,12 @@ var grains = (function () {
     }
 
     function initBorders() {
-        ctx.fillStyle = "#000";
+        ctx.fillStyle = "#fff";
         for (var i = 1; i < W - 2; i++) {
             for (var j = 1; j < H - 2; j++) {
                 if(matrix[i][j] != 9999){
                     srx[i][j] = srxMin;
-                    ctx3.fillStyle = "#fff";
+                    ctx3.fillStyle = "#E0E026";
                     ctx3.save();
                     ctx3.fillRect(i, j, 1, 1);
                     ctx3.restore();
@@ -207,9 +217,9 @@ var grains = (function () {
                         ctx.save();
                         ctx.fillRect(i, j, 2, 2);
                         ctx.restore();
-                        ctx3.fillStyle = "#000";                        
+                        ctx3.fillStyle = "#F00C0C";                        
                         if(srxMin==srxMax){
-                            ctx3.fillStyle = "#000";
+                            ctx3.fillStyle = "#E0E026";
                         }
                         ctx3.save();
                         ctx3.fillRect(i, j, 2, 2);
@@ -263,6 +273,8 @@ var grains = (function () {
     function loop() {
         if (document.getElementById('rules').checked) {
             Rules();
+        } else if(document.getElementById('vonmoore').checked){
+            vonMoore();
         } else {
             if (document.getElementById('moore').checked) {
                 Moore();
@@ -270,7 +282,15 @@ var grains = (function () {
                 vonNeuman();
             } else if (document.getElementById('pentagonal-bottom').checked) {
                 Pentagonal();
+            } else if (document.getElementById('pentagonal-top').checked) {
+                Pentagonal();
+            } else if (document.getElementById('pentagonal-left').checked) {
+                Pentagonal();
+            } else if (document.getElementById('pentagonal-right').checked) {
+                Pentagonal();
             } else if (document.getElementById('hexagonal-left').checked) {
+                Hexagonal();
+            } else if (document.getElementById('hexagonal-right').checked) {
                 Hexagonal();
             }
         }
@@ -279,21 +299,13 @@ var grains = (function () {
         }
 
         if (settings.period) {
-            function ctxSet(a,b,c,d) {
-                matrix[a][b] = matrix[a][c];
-                ctx.save();
-                ctx.fillStyle = grains[matrix[i][c]].color;
-                ctx.fillRect(a, b, settings.size, settings.size);
-                ctx.restore();
-            }
             for (var i = 1; i < W - 1; i++) {
                 if (matrix[i][1] != 0) {
-                    ctxSet(i,(H-2), 1);
-                    // matrix[i][H - 2] = matrix[i][1];
-                    // ctx.save();
-                    // ctx.fillStyle = grains[matrix[i][1]].color;
-                    // ctx.fillRect(i, H - 2, settings.size, settings.size);
-                    // ctx.restore();
+                    matrix[i][H - 2] = matrix[i][1];
+                    ctx.save();
+                    ctx.fillStyle = grains[matrix[i][1]].color;
+                    ctx.fillRect(i, H - 2, settings.size, settings.size);
+                    ctx.restore();
                 }
                 if (matrix[i][H - 2] != 0) {
                     matrix[i][1] = matrix[i][H - 2];
@@ -325,15 +337,19 @@ var grains = (function () {
             if(monteTime % 100 == 0 && srxRun){
                 console.log('asd');
             }
+            loading.parentElement.style.opacity = 1;
             window.requestAnimationFrame(loop);
+            loading.style.width = ((loaderMax - zerosCounts)/loaderMax)*100 + "%"; 
             if(--monteTime && settings.monte){
                 zerosCounts = monteTime
-                //console.log('asdaa');
             } else if(settings.monte) {
                 finished = true;
             }
         } else {
             finished = true;
+            loading.style.width = "100%"; 
+            loading.parentElement.style.opacity = 0;
+
             if (settings.dualphase || settings.substructures) {
                 setTimeout(function(){ 
                     SubAndDual();
@@ -341,7 +357,9 @@ var grains = (function () {
                         settings.monte = true;
                         monteProb = document.getElementById('monteProbability').value;
                         monteTime = document.getElementById('monteTime').value;
-                        initGrains2(minID, subAfter);
+                        loaderMax = zerosCounts = monteTime;
+                        initMonteGrains(minID, subAfter);
+                        //initGrains(minID, subAfter);
                     } else {
                         initGrains(minID, subAfter);
                         zerosCounts = -1;
@@ -360,18 +378,30 @@ var grains = (function () {
                 initBorders();
                 initInclusions();
             }
-            if(!settings.dualphase && !settings.substructures){
+            if(!settings.dualphase && !settings.substructures && settings.srx){
                 canvasCont.appendChild(canvas2);
                 canvasCont.appendChild(canvas3);
                 ctx2.drawImage(canvas, 0, 0);
                 canvas = canvas2;
                 initBorders();
                 ctx = ctx2;
+                minID = parseInt(settings.quantity) + 1;
+                initMonteSrx(minID, subAfter);
+                setTimeout(function(){
+                    settings.monte = true;
+                    monteProb = 0;
+                    srxRun = true;
+                    monteTime = document.getElementById('monteTime').value;
+                    loaderMax = zerosCounts = monteTime;
+                    settings.srx = false;
+                    settings.substructures = false;
+                    settings.dualphase = false;
+                    finished = false;
+                    loop();
+                },3000);
             }
 
             console.log('Finished');
-            console.log(grains);
-            console.log(inclusions);
         }
     }
 
@@ -406,6 +436,7 @@ var grains = (function () {
                                 }
                             }
                         }
+                        // if(isrecrystalized) { break; }
                     }
                     if(isrecrystalized){
                         var z = Math.floor(Math.random(_tempi));
@@ -615,9 +646,9 @@ var grains = (function () {
         }
         else if (settings.monte) {
             var _len = _length, _z, _eNew, _ran, _eOld, _idOld, _idNew, i, j;
+
             while (_len--) {
                 _ran = Math.ceil(Math.random() * (_len-1));
-
                 _eNew = 0, _eOld = 0;
 
                 i = _arr[_ran][0];
@@ -647,10 +678,6 @@ var grains = (function () {
 
 
                 _z = Math.pow(Math.E, (_eNew - _eOld / Math.round((Math.random() * 10)) / 10));
-
-                if(_len == 80000) {
-                    console.log(_z);
-                }
 
                 if (_idNew > minID && _idOld > minID && _idNew < 9999 && _idOld < 9999) {
                     if (_eNew - _eOld  <= 0 || monteProb <= _z) {
@@ -684,8 +711,7 @@ var grains = (function () {
                         _tmp[7] = matrix[i][j + 1];
 
 
-                        // _result = _tmp.reduce(function (pv, cv) { return pv + parseInt(cv); }, 0);
-                        _result = _tmp.reduce((pv, cv) => { return pv + parseInt(cv); }, 0);
+                        _result = _tmp.reduce(function (pv, cv) { return pv + parseInt(cv); }, 0);
 
                         if (_result > 0 && _result < 9999) {
                             _max = -1;
@@ -709,8 +735,59 @@ var grains = (function () {
                     }
                 }
             }
-            console.log("Moore");
-            console.log(grains);
+        }
+    }
+
+    function vonMoore() {
+        var _tmp = [], _counts, _max, _result;
+        for (var i = 2; i < W - 2; i++) {
+            for (var j = 2; j < H - 2; j++) {
+                if (matrix[i][j] == 0) {
+                    _tmp = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+                    _tmp[0] = matrix[i - 1][j];
+                    _tmp[1] = matrix[i + 1][j];
+
+                    _tmp[2] = matrix[i - 1][j - 1];
+                    _tmp[3] = matrix[i + 1][j + 1];
+
+                    _tmp[4] = matrix[i + 1][j - 1];
+                    _tmp[5] = matrix[i - 1][j + 1];
+
+                    _tmp[6] = matrix[i][j - 1];
+                    _tmp[7] = matrix[i][j + 1];
+
+                    _tmp[8] = matrix[i][j+2];
+                    _tmp[9] = matrix[i][j-2];
+
+                    _tmp[10] = matrix[i+2][j];
+                    _tmp[11] = matrix[i-2][j];
+
+
+
+                    _result = _tmp.reduce(function (pv, cv) { return pv + parseInt(cv); }, 0);
+
+                    if (_result > 0 && _result < 9999) {
+                        _max = -1;
+                        _counts = [];
+                        for (var k = 0; k < 12; k++) {
+                            if (_tmp[k] != 0 && _tmp[k] != 9999 && _tmp[k] > minID) {
+                                _counts[_tmp[k]] = (_counts[_tmp[k]] || 0) + 1;
+                                if (_counts[_tmp[k]] > _max) {
+                                    _max = _tmp[k];
+                                }
+                            }
+                        }
+                        if (_max > -1 && _max < 9999) {
+                            ctx.save();
+                            ctx.fillStyle = grains[_max].color;
+                            ctx.fillRect(i, j, 1, 1);
+                            ctx.restore();
+                            tmp_matrix[i][j] = _max;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -957,8 +1034,11 @@ var grains = (function () {
         return "rgba(" + r + "," + g + "," + b + ", 1)";
     }
 
-    function initGrains2(c, d){
-        var _c = typeof c !== 'undefined' ? c : 2;
+
+    // Monte Carlo
+
+    function initMonteGrains(c, d){
+        var _c = typeof c !== 'undefined' ? c : 1;
         var leng = typeof d !== 'undefined' ? (_c + d) : (_c + parseInt(settings.quantity));
 
         for(_c; _c <= leng; _c++){
@@ -985,6 +1065,62 @@ var grains = (function () {
         }
     }
 
+    function initMonteSrx(c,d){
+        var _c = typeof c !== 'undefined' ? parseInt(c) : 1;
+        var leng = typeof d !== 'undefined' ? (_c + parseInt(d)) : (_c + parseInt(settings.quantity));
+
+        _length = 0;
+        _arr = new Array((W-2)*(H-2));
+        for(var i = 1; i < W-1; i++){
+            for(var j = 1; j < H-1; j++){
+                _arr[_length] = new Array(2);
+                _arr[_length][0] = i;
+                _arr[_length][1] = j;
+                _length++;
+            }
+        }
+        var color_shade = Math.floor(255/leng), color_iter = 1;
+
+        for(_c; _c <= leng; _c++){
+            if(settings.srxRandom){
+                var z = new grain(undefined, undefined, "rgba(" + (255 - color_shade*color_iter) + ",0,0,1.0)");
+                srx[z.x][z.y] = 0;
+                matrix[z.x][z.y] = _c;
+                ctx.save();
+                ctx.fillStyle = z.color;
+                ctx.fillRect(z.x, z.y, settings.size, settings.size);
+                ctx.restore();
+                ctx3.save();
+                ctx3.fillStyle = "#2626E0";
+                ctx3.fillRect(z.x, z.y, 1, 1);
+                ctx3.restore();
+            } 
+            else if(borderLength > leng){
+                var _ran = Math.ceil(Math.random()*borderLength);
+                var x, y;
+                do {
+                    x = border[_ran][0];
+                    y = border[_ran][1];
+                } while(x<1 && x>W-2 && y<1 && y>H-2);
+                border.swap(_ran,borderLength);
+                borderLength--;
+                var z = new grain(x,y, "rgba(" + (255 - color_shade*color_iter) + ",0,0,1.0)");
+                srx[x][y] = 0;
+                matrix[x][y] = _c;
+                ctx.save();
+                ctx.fillStyle = z.color;
+                ctx.fillRect(x, y, settings.size, settings.size);
+                ctx.restore();
+                ctx3.save();
+                ctx3.fillStyle = "#2626E0";
+                ctx3.fillRect(x, y, 1, 1);
+                ctx3.restore();
+            }
+            color_iter++;
+        }    
+
+    }
+
     Array.prototype.swap = function (x,y) {
         var b = this[x];
         this[x] = this[y];
@@ -1002,6 +1138,8 @@ var grains = (function () {
     return {
         init: init
     };
+
+
 })();
 
 (function () {

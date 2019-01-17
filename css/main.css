@@ -100,7 +100,8 @@ button#initBtn {
 
 .canvasCont canvas {
     margin:0 auto;   
-    border: 1px solid #000;
+    /* border: 1px solid #000; */
+    padding: 3px;
 }
 
 .loaderCont {

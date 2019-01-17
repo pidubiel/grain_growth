@@ -35,15 +35,15 @@
                     <ul>
                         <li>
                             <label for="in_width">Width:&nbsp;</label>
-                            <input type="number" id="in_width" value="300" />
+                            <input type="number" id="in_width" value="200" />
                         </li>
                         <li>
                             <label for="in_height">Height:&nbsp;</label>
-                            <input type="number" id="in_height" value="300" />
+                            <input type="number" id="in_height" value="200" />
                         </li>
                         <li>
                             <label for="in_qunatity">Nucleons:&nbsp;</label>
-                            <input type="number" id="in_qunatity" value="10" />
+                            <input type="number" id="in_qunatity" value="20" />
                         </li>
                     </ul>
                 </div>
@@ -53,14 +53,14 @@
         <div class="neighborhood">
             <h3>Type of Neighborhood</h3>
             <div class="neighborhood__item">
-                <input type="radio" id="moore" name="neighborhood">
+                <input type="radio" id="moore" name="neighborhood" checked>
                 <label for="moore">Moore</label>
             </div>
             <div class="neighborhood__item">
-                <input type="radio" id="vonneuman" name="neighborhood" checked>
+                <input type="radio" id="vonneuman" name="neighborhood">
                 <label for="vonneuman">von Neumann</label>
             </div>
-            <div class="neighborhood__item">
+            <div class="neighborhood__item hide">
                 <input type="radio" id="pentagonal-bottom" name="neighborhood">
                 <label for="pentagonal-bottom">Pentagonal</label>
             </div>
@@ -76,7 +76,7 @@
                 <input type="radio" id="pentagonal-right" name="neighborhood">
                 <label for="pentagonal-right">Pentagonal - right</label>
             </div>
-            <div class="neighborhood__item">
+            <div class="neighborhood__item hide">
                 <input type="radio" id="hexagonal-left" name="neighborhood">
                 <label for="hexagonal-left">Hexagonal</label>
             </div>
@@ -147,7 +147,7 @@
                 <label for="subCount">Grains amount after:&nbsp;</label>
                 <input type="number" id="subCount" value="20">
             </div>
-            <div class="monte2 hide">
+            <div class="monte2">
                 <div>
                     <br />
                     <input type="checkbox" id="monte">
@@ -155,7 +155,7 @@
                 </div>
                 <div>
                     <br>
-                    <label for="monteTime">Iteractions:&nbsp;</label>
+                    <label for="monteTime">Iterations:&nbsp;</label>
                     <input type="number" id="monteTime" value="50">
                 </div>
                 <div>
@@ -165,7 +165,7 @@
                 </div>
             </div>
 
-            <div class="hide">
+            <div class='hi'>
                 <div>
                         <br />
                         <input type="checkbox" id="srx">
@@ -181,7 +181,7 @@
                         <label for="maxSrx">Max energy</label>
                         <input type="number" id="maxSrx" value="6">
                     </div>
-                    <div>
+                    <div class='hi'>
                         <input type="checkbox" id="randomSrx">
                         <label for="randomSrx">randomly</label>
                     </div>
@@ -194,6 +194,6 @@
         </div>
     </div>
     <script src="./js/jquery.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main_w.js"></script>
 </body>
 </html>
