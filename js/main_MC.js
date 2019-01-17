@@ -8,7 +8,6 @@ var grains = (function () {
     ctx2 = canvas2.getContext("2d"),
     canvas3 = document.createElement('canvas'),
     ctx3 = canvas3.getContext("2d"),
-    loading = document.getElementById("loading"),
 
     grains = {},
     grainIndex = 1,
@@ -107,11 +106,11 @@ var grains = (function () {
             initInclusions();
         }
         if(settings.monte){
-            initMonteGrains();
+            initGrainsMonte();
         } else {
             initGrains();
         }
-        loop();    
+        mainLoop();    
     }
 
     function initCanvas() {
@@ -163,8 +162,6 @@ var grains = (function () {
         canvasCont.appendChild(canvas);
         document.body.appendChild(canvasCont);
         ctx3.globalCompositeOperation = ctx2.globalCompositeOperation = ctx.globalCompositeOperation = 'source-over';
-
-        loading.parentElement.style.opacity = 1;
 
         ctx.clearRect(0, 0, W, H);
     }
@@ -271,7 +268,7 @@ var grains = (function () {
         }
     }
 
-    function loop() {
+    function mainLoop() {
         if (document.getElementById('rules').checked) {
             Rules();
         } else if(document.getElementById('vonmoore').checked){
@@ -281,19 +278,7 @@ var grains = (function () {
                 Moore();
             } else if (document.getElementById('vonneuman').checked) {
                 vonNeuman();
-            } else if (document.getElementById('pentagonal-bottom').checked) {
-                Pentagonal();
-            } else if (document.getElementById('pentagonal-top').checked) {
-                Pentagonal();
-            } else if (document.getElementById('pentagonal-left').checked) {
-                Pentagonal();
-            } else if (document.getElementById('pentagonal-right').checked) {
-                Pentagonal();
-            } else if (document.getElementById('hexagonal-left').checked) {
-                Hexagonal();
-            } else if (document.getElementById('hexagonal-right').checked) {
-                Hexagonal();
-            }
+            } 
         }
         if(!settings.monte){
             UpdateMatrices();
@@ -335,12 +320,9 @@ var grains = (function () {
         }
 
         if (finished == false || (settings.monte && monteTime !=0)) {
-            if(monteTime % 100 == 0 && srxRun){
-                console.log('asd');
-            }
-            loading.parentElement.style.opacity = 1;
-            window.requestAnimationFrame(loop);
-            loading.style.width = ((loaderMax - zerosCounts)/loaderMax)*100 + "%"; 
+
+            window.requestAnimationFrame(mainLoop);
+
             if(--monteTime && settings.monte){
                 zerosCounts = monteTime
             } else if(settings.monte) {
@@ -348,8 +330,6 @@ var grains = (function () {
             }
         } else {
             finished = true;
-            loading.style.width = "100%"; 
-            loading.parentElement.style.opacity = 0;
 
             if (settings.dualphase || settings.substructures) {
                 setTimeout(function(){ 
@@ -359,7 +339,7 @@ var grains = (function () {
                         monteProb = document.getElementById('monteProbability').value;
                         monteTime = document.getElementById('monteTime').value;
                         loaderMax = zerosCounts = monteTime;
-                        initMonteGrains(minID, subAfter);
+                        initGrainsMonte(minID, subAfter);
                         //initGrains(minID, subAfter);
                     } else {
                         initGrains(minID, subAfter);
@@ -370,7 +350,7 @@ var grains = (function () {
                     settings.substructures = false;
                     settings.dualphase = false;
                     finished = false;
-                    loop();
+                    mainLoop();
                 },5000);
             }
 
@@ -387,6 +367,7 @@ var grains = (function () {
                 initBorders();
                 ctx = ctx2;
                 minID = parseInt(settings.quantity) + 1;
+                //Nucleation
                 initMonteSrx(minID, subAfter);
                 setTimeout(function(){
                     settings.monte = true;
@@ -398,7 +379,7 @@ var grains = (function () {
                     settings.substructures = false;
                     settings.dualphase = false;
                     finished = false;
-                    loop();
+                    mainLoop();
                 },3000);
             }
 
@@ -407,114 +388,7 @@ var grains = (function () {
     }
 
     function vonNeuman() {
-        if(srxRun){
-            var _len = _length, _z, _eNew, _ran, _eOld, _idOld, _idNew, i, j, _H, isrecrystalized, tmpX, tmpY, _temp = new Array(8), _tempi = 0;
-            while(_len--){
-                _temp = [];
-                _tempi = 0;
-                isrecrystalized = false;
-                _ran = Math.ceil(Math.random()*(_len-1));
-                _eNew = 0, _eOld = 0, 
-
-                i = _arr[_ran][0];
-                j = _arr[_ran][1];
-
-                _arr.swap(_ran,_len);
-
-                if(matrix[i][j]!=9999){
-                    _idOld = tmp_matrix[i][j] = matrix[i][j];
-
-                    for(var ii = -1; ii<2; ii++){
-                        for(var jj = -1; jj<2; jj++){
-                            if((ii == 0 && jj != 0) || (jj==0 && ii !=0)){
-                                (typeof matrix[i+ii][j+jj] !== undefined && matrix[i+ii][j+jj] != _idOld) ? ++_eOld: '';
-                                if(srx[i+ii][j+jj] == 0){
-                                    isrecrystalized = true;
-                                    _temp[_tempi] = new Array(2);
-                                    _temp[_tempi][0] = i+ii;
-                                    _temp[_tempi][1] = j+jj;
-                                    _tempi++;
-                                }
-                            }
-                        }
-                        // if(isrecrystalized) { break; }
-                    }
-                    if(isrecrystalized){
-                        var z = Math.floor(Math.random(_tempi));
-                        _idNew = tmp_matrix[i][j] = matrix[i][j] = matrix[_temp[z][0]][_temp[z][1]];
-                        for(var ii = -1; ii<2; ii++){
-                            for(var jj = -1; jj<2; jj++){
-                                if((ii == 0 && jj != 0) || (jj==0 && ii !=0)){
-                                    (typeof matrix[i+ii][j+jj] !== undefined && matrix[i+ii][j+jj] != _idNew) ? ++_eNew : '';
-                                }
-                            }
-                        }
-
-                        _H = srx[i][j];
-
-                        if(_idNew > minID && _idOld > minID && _idNew < 9999 && _idOld < 9999){
-                            if (_eNew - (_eOld + _H) <= 0) {
-                                tmp_matrix[i][j] = matrix[i][j] = _idNew;
-                                srx[i][j]=0;
-                                ctx.save();
-                                ctx.fillStyle = grains[_idNew].color;
-                                ctx.fillRect(i, j, 1, 1);
-                                ctx.restore();
-                                ctx3.save();
-                                ctx3.fillStyle = "#2626E0";
-                                ctx3.fillRect(i, j, 1, 1);
-                                ctx3.restore();
-                            } else {
-                                tmp_matrix[i][j] = matrix[i][j] = _idOld;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else if(settings.monte){
-            var _len = _length, _z, _eNew, _ran, _eOld, _idOld, _idNew, i, j;
-
-            while(_len--){
-                _ran = Math.ceil(Math.random()*(_len-1));
-                _eNew = 0, _eOld = 0, 
-
-                i = _arr[_ran][0];
-                j = _arr[_ran][1];
-
-                _arr.swap(_ran,_len);
-
-                _idOld = tmp_matrix[i][j] = matrix[i][j];
-
-                for(var ii = -1; ii<=1; ii+=2){
-                    for(var jj = -1; jj<=1; jj+=2){
-                        (typeof matrix[i+ii][j+jj] !== undefined && matrix[i+ii][j+jj] != _idOld) ? ++_eOld: '';
-                    }
-                }
-
-                _idNew = tmp_matrix[i][j] = matrix[i][j] = matrix[i + Math.round((Math.random() * 2) - 1)][j + Math.round((Math.random() * 2) - 1)];
-
-                for(var ii = -1; ii<=1; ii+=2){
-                    for(var jj = -1; jj<=1; jj+=2){
-                        (typeof matrix[i+ii][j+jj] !== undefined && matrix[i+ii][j+jj] != _idNew) ? ++_eNew : '';
-                    }
-                }
-
-                _z = Math.pow(Math.E, (_eNew - _eOld / Math.round((Math.random() * 10)) / 10));
-
-                if(_idNew > minID && _idOld > minID && _idNew < 9999 && _idOld < 9999){
-                    if (_eNew - _eOld <= 0 || monteProb <= _z) {
-                        tmp_matrix[i][j] = matrix[i][j] = _idNew;
-                        ctx.save();
-                        ctx.fillStyle = grains[_idNew].color;
-                        ctx.fillRect(i, j, 1, 1);
-                        ctx.restore();
-                    } else {
-                        tmp_matrix[i][j] = matrix[i][j] = _idOld;
-                    }
-                }
-            }
-        } else {
+            //CA
             var _tmp = [], _counts, _max, _result;
             for (var i = 1; i < W - 1; i++) {
                 for (var j = 1; j < H - 1; j++) {
@@ -550,7 +424,6 @@ var grains = (function () {
                     }
                 }
             }
-        }
     }
 
     function Moore() {
@@ -792,114 +665,6 @@ var grains = (function () {
         }
     }
 
-    function Pentagonal() {
-        var _tmp = [], _counts, _max, _result, _dirArr = ["left", "right", "top", "bottom"], _direction = _dirArr[parseInt(Math.random()*4)];
-        for (var i = 1; i < W - 1; i++) {
-            for (var j = 1; j < H - 1; j++) {
-                if (matrix[i][j] == 0) {
-                    _tmp = [0, 0, 0, 0, 0, 0, 0, 0];
-
-                    if (_direction != "left") {
-                        _tmp[0] = matrix[i - 1][j];
-                    }
-                    if (_direction != "right") {
-                        _tmp[1] = matrix[i + 1][j];
-                    }
-                    if (_direction != "left" && _direction != "bottom") {
-                        _tmp[2] = matrix[i - 1][j - 1];
-                    }
-                    if (_direction != "right" && _direction != "top") {
-                        _tmp[3] = matrix[i + 1][j + 1];
-                    }
-                    if (_direction != "right" && _direction != "bottom") {
-                        _tmp[4] = matrix[i + 1][j - 1];
-                    }
-                    if (_direction != "left" && _direction != "top") {
-                        _tmp[5] = matrix[i - 1][j + 1];
-                    }
-                    if (_direction != "bottom") {
-                        _tmp[6] = matrix[i][j - 1];
-                    }
-                    if (_direction != "top") {
-                        _tmp[7] = matrix[i][j + 1];
-                    }
-
-
-                    _result = _tmp.reduce(function (pv, cv) { return pv + parseInt(cv); }, 0);
-
-                    if (_result > 0 && _result < 9999) {
-                        _max = -1;
-                        _counts = [];
-                        for (var k = 0; k < 8; k++) {
-                            if (_tmp[k] != 0 && _tmp[k] != 9999 && _tmp[k] > minID) {
-                                _counts[_tmp[k]] = (_counts[_tmp[k]] || 0) + 1;
-                                if (_counts[_tmp[k]] > _max) {
-                                    _max = _tmp[k];
-                                }
-                            }
-                        }
-                        if (_max > -1 && _max < 9999) {
-                            ctx.save();
-                            ctx.fillStyle = grains[_max].color;
-                            ctx.fillRect(i, j, 1, 1);
-                            ctx.restore();
-                            tmp_matrix[i][j] = _max;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    function Hexagonal() {
-        var _tmp = [], _counts, _max, _result, _dirArr = ["left", "right"], _direction = _dirArr[parseInt(Math.random()*2)];
-        for (var i = 1; i < W - 1; i++) {
-            for (var j = 1; j < H - 1; j++) {
-                if (matrix[i][j] == 0) {
-                    _tmp = [0, 0, 0, 0, 0, 0, 0, 0];
-
-                    _tmp[0] = matrix[i - 1][j];
-                    _tmp[1] = matrix[i + 1][j];
-
-                    if (_direction != "right") {
-                        _tmp[2] = matrix[i - 1][j - 1];
-                        _tmp[3] = matrix[i + 1][j + 1];
-                    }
-                    if (_direction != "left") {
-                        _tmp[4] = matrix[i + 1][j - 1];
-                        _tmp[5] = matrix[i - 1][j + 1];
-                    }
-
-                    _tmp[6] = matrix[i][j - 1];
-                    _tmp[7] = matrix[i][j + 1];
-
-
-                    _result = _tmp.reduce(function (pv, cv) { return pv + parseInt(cv); }, 0);
-
-                    if (_result > 0 && _result < 9999) {
-                        _max = -1;
-                        _counts = [];
-                        for (var k = 0; k < 8; k++) {
-                            if (_tmp[k] != 0 && _tmp[k] != 9999 && _tmp[k] > minID) {
-                                _counts[_tmp[k]] = (_counts[_tmp[k]] || 0) + 1;
-                                if (_counts[_tmp[k]] > _max) {
-                                    _max = _tmp[k];
-                                }
-                            }
-                        }
-                        if (_max > -1 && _max < 9999) {
-                            ctx.save();
-                            ctx.fillStyle = grains[_max].color;
-                            ctx.fillRect(i, j, 1, 1);
-                            ctx.restore();
-                            tmp_matrix[i][j] = _max;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     function Rules() {
         var _tmp = [], _tmp2 = [], _tmp3 = [],
         _counts, _max, _max2, _result, _prob = document.getElementById('rule_prob').value,
@@ -1038,7 +803,7 @@ var grains = (function () {
 
     // Monte Carlo
 
-    function initMonteGrains(c, d){
+    function initGrainsMonte(c, d){
         var _c = typeof c !== 'undefined' ? c : 1;
         var leng = typeof d !== 'undefined' ? (_c + d) : (_c + parseInt(settings.quantity));
 
@@ -1129,6 +894,7 @@ var grains = (function () {
         return this;
     }
 
+    //Exporting Image
     let exportBMP = document.getElementById('exportBMP');
     exportBMP.addEventListener('click', function(ev) {
         console.log(canvas);
